@@ -1,5 +1,5 @@
 {
-    "name": "bhornberg/powerbi-sdk",
+    "name": "bhornberg/powerbi-sdk-php",
     "description": "PHP SDK for working with PowerBI",
     "type": "library",
     "license": "MIT",
