@@ -48,6 +48,28 @@ class Report
         return $this->client->generateResponse($response);
     }
 
+
+    public function deleteReport($groupId = null, $reportId = null){
+
+        $url = $this->getUrlReports($groupId).'/'.$reportId;
+
+        $response = $this->client->request(Client::METHOD_DELETE, $url);
+
+        return $this->client->generateResponse($response);
+    }
+
+    public function rebindReport($groupId = null, $reportId = null, $datasetId = null){
+        $url = $this->getUrlReports($groupId).'/'.$reportId.'/Rebind';
+
+        $body = [
+            'datasetId' => $datasetId,
+        ];
+
+        $response = $this->client->request(Client::METHOD_POST, $url, $body);
+
+        return $this->client->generateResponse($response);
+    }
+
     /**
      * Retrieves the embed token for embedding a report
      *
@@ -57,13 +79,17 @@ class Report
      *
      * @return \Tngnt\PBI\Response
      */
-    public function getReportEmbedToken($reportId, $groupId, $accessLevel = 'view')
+    public function getReportEmbedToken($reportId, $groupId, $accessLevel = 'view', $identities = null)
     {
         $url = sprintf(self::GROUP_REPORT_EMBED_URL, $groupId, $reportId);
 
         $body = [
             'accessLevel' => $accessLevel,
         ];
+
+        if ($identities) {
+            $body['identities'] = $identities;
+        }
 
         $response = $this->client->request(Client::METHOD_POST, $url, $body);
 
