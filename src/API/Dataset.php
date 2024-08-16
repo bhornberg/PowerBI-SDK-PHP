@@ -40,11 +40,35 @@ class Dataset
      *
      * @return Response
      */
-    public function getDatasets($groupId = null)
+    public function get($groupId = null)
     {
         $url = $this->getUrl($groupId);
 
         $response = $this->client->request(Client::METHOD_GET, $url);
+
+        return $this->client->generateResponse($response);
+    }
+
+    public function getByName($groupId, $name)
+    {
+        $url = $this->getUrl($groupId);
+
+        $response = $this->client->request(Client::METHOD_GET, $url);
+
+        $datasets =  $this->client->generateResponse($response)->toArray();
+        foreach ($datasets['value'] as $dataset){
+
+            if ($dataset['name'] == $name){
+                return $dataset;
+            }
+        }
+    }
+
+    public function delete($groupId = null, $datasetId = null){
+
+        $url = $this->getUrl($groupId).'/'.$datasetId;
+
+        $response = $this->client->request(Client::METHOD_DELETE, $url);
 
         return $this->client->generateResponse($response);
     }
@@ -58,7 +82,7 @@ class Dataset
      *
      * @return Response
      */
-    public function refreshDataset($datasetId, $groupId = null, $notify = true)
+    public function refresh($groupId = null, $datasetId = null, $notify = true)
     {
         $url = $this->getRefreshUrl($groupId, $datasetId);
         if ($notify) {
@@ -67,7 +91,64 @@ class Dataset
             $response = $this->client->request(Client::METHOD_POST, $url);
         }
 
+
+
         return $this->client->generateResponse($response);
+    }
+    
+
+    public function cancelRefresh($groupId, $datasetId, $refreshId)
+    {
+        $url = "https://api.powerbi.com/v1.0/myorg/groups/$groupId/datasets/$datasetId/refreshes/$refreshId";
+        $response = $this->client->request(Client::METHOD_DELETE, $url);
+        $response =  $this->client->generateResponse($response)->toArray();
+
+        return $response;
+    }
+
+    public function getRefreshHistory($workspaceId, $datasetId){
+        if (!$workspaceId || !$datasetId){
+            return false;
+        }
+        $response = $this->client->request('GET', "https://api.powerbi.com/v1.0/myorg/groups/$workspaceId/datasets/$datasetId/refreshes");
+        $response = $this->client->generateResponse($response);
+        $response = $response->toArray();
+
+        $refreshes = $response['value'];
+        foreach ($refreshes as $key => $refresh){
+            $endTime = time();
+            if (array_key_exists('endTime', $refresh)){
+                $endTime = strtotime($refresh['endTime']);
+            }
+
+            $durationMinutes = round(($endTime - strtotime($refresh['startTime'])) / 60,2);
+            $refreshes[$key]['duration'] = $durationMinutes;
+
+        }
+        return $refreshes;
+    }
+
+    public function getParameters($workspaceId, $datasetId){
+        if (!$workspaceId || !$datasetId){
+            return false;
+        }
+        $response = $this->client->request('GET', "https://api.powerbi.com/v1.0/myorg/groups/$workspaceId/datasets/$datasetId/parameters");
+        $response = $this->client->generateResponse($response);
+        $response = $response->toArray();
+
+        $response = $response['value'];
+        $return = array();
+        foreach ($response as $key => $value){
+            $return[$value['name']] = $value['currentValue'];
+        }
+
+        return $return;
+    }
+
+    public function getLastRefresh($workspaceId, $datasetId)
+    {
+        $refreshes = $this->getRefreshHistory($workspaceId, $datasetId);
+        return $refreshes[0];
     }
 
     /**
