@@ -41,4 +41,17 @@ class Group
 
         return $this->client->generateResponse($response);
     }
+
+    public function getGroupByName(string $name): ?array
+    {
+        $groups = $this->getGroups()->toArray();
+    
+        foreach ($groups as $group) {
+            if (isset($group['name']) && $group['name'] === $name) {
+                return $group;
+            }
+        }
+    
+        return null;
+    }
 }
