@@ -230,4 +230,33 @@ class Dataset
 
         return sprintf(self::REFRESH_DATASET_URL, $datasetId);
     }
+
+
+    /**
+    * Execute a DAX query against a dataset
+    *
+    * @param string $groupId The workspace/group ID
+    * @param string $datasetId The dataset ID
+    * @param array $queries Array of query objects [['query' => 'DAX...']]
+    * @return \Tngnt\PBI\Response
+    */
+    public function executeQuery(string $groupId, string $datasetId, array $queries): Response
+    {
+        $url = sprintf(
+            'https://api.powerbi.com/v1.0/myorg/groups/%s/datasets/%s/executeQueries',
+            $groupId,
+            $datasetId
+        );
+        
+        $body = [
+            'queries' => $queries,
+            'serializerSettings' => [
+            'includeNulls' => true,
+            ],
+        ];
+        
+        $response = $this->client->request(Client::METHOD_POST, $url, $body);
+        
+        return $this->client->generateResponse($response);
+    }
 }
