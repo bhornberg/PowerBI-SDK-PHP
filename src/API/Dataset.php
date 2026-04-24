@@ -64,6 +64,36 @@ class Dataset
         }
     }
 
+    /**
+     * Get the latest dataset in a workspace (by creation date)
+     *
+     * @param string $groupId The workspace/group ID
+     * @param bool $includeHidden Include hidden datasets
+     * @return array|null The dataset array or null
+     */
+    public function getLatestDatasetForWorkspace(string $groupId, bool $includeHidden = false): ?array
+    {
+        $response = $this->get($groupId)->toArray();
+        $datasets = $response['value'] ?? [];
+    
+        if (!$includeHidden) {
+            $datasets = array_filter($datasets, function ($ds) {
+                return empty($ds['isHidden']);
+            });
+        }
+    
+        if (empty($datasets)) {
+            return null;
+        }
+    
+        // Sort by createdDate descending, return the latest
+        usort($datasets, function ($a, $b) {
+            return ($b['createdDate'] ?? '') <=> ($a['createdDate'] ?? '');
+        });
+    
+        return $datasets[0];
+    }
+
     public function delete($groupId = null, $datasetId = null){
 
         $url = $this->getUrl($groupId).'/'.$datasetId;
