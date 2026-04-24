@@ -44,7 +44,8 @@ class Group
 
     public function getGroupByName(string $name): ?array
     {
-        $groups = $this->getGroups()->toArray();
+        $response = $this->getGroups()->toArray();
+        $groups = $response['value'] ?? [];
     
         foreach ($groups as $group) {
             if (isset($group['name']) && $group['name'] === $name) {
