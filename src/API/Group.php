@@ -55,4 +55,16 @@ class Group
     
         return null;
     }
+
+    public function createGroup(string $name): array
+    {
+        $response = $this->client->request(Client::METHOD_POST, self::GROUP_URL, ['name' => $name]);
+        return $this->client->generateResponse($response)->toArray();
+    }
+    
+    public function getOrCreateGroup(string $name): array
+    {
+        $group = $this->getGroupByName($name);
+        return $group ?: $this->createGroup($name);
+    }
 }
