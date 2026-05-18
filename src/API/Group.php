@@ -67,4 +67,14 @@ class Group
         $group = $this->getGroupByName($name);
         return $group ?: $this->createGroup($name);
     }
+
+    public function addGroupUser(string $groupId, string $emailAddress, string $accessRight = 'Admin'): array
+    {
+        $url = self::GROUP_URL . "/{$groupId}/users";
+        $response = $this->client->request(Client::METHOD_POST, $url, [
+            'emailAddress' => $emailAddress,
+            'groupUserAccessRight' => $accessRight,
+        ]);
+        return $this->client->generateResponse($response)->toArray();
+    }
 }
